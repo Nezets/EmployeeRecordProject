@@ -1,5 +1,4 @@
 const User = require('./User');
-const UserNotFoundException = require('./UserNotFoundException');
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 
@@ -24,6 +23,25 @@ const getUser = async (id) => {
   return user;
 }
 
+const updateUser = async (id, username, password) => {
+    await User.update(
+        {
+            username: username,
+            password: await bcrypt.hash(password, 8),
+        },
+        {
+            where: { id, id },
+        }
+    )
+
+}
+
+const deleteUser = async (id) => {
+    await User.destroy({
+        where: {id: id},
+    })
+}
+
 const authenticate = async (username, password) => {
     const hashedPassword = bcrypt.hash(password, 8);
     const user = await User.findOne({
@@ -32,14 +50,14 @@ const authenticate = async (username, password) => {
             password: hashedPassword,
         },
     })
-    .then(() => {
-        //todo: Generate JWT
+        .then(() => {
+            //todo: Generate JWT
 
-        return user;
-    }).catch((err) => {
-        console.log(err);
-        return err;
-    });
+            return user;
+        }).catch((err) => {
+            console.log(err);
+            return err;
+        });
 }
 
 const checkLoginInfo = async (username, password) => {
@@ -59,7 +77,9 @@ const checkLoginInfo = async (username, password) => {
 }
 
 module.exports = {
-  createUser,
-  getUsers,
-  getUser,
+    createUser,
+    getUsers,
+    getUser,
+    updateUser,
+    deleteUser,
 }

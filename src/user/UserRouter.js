@@ -1,62 +1,63 @@
 const express = require('express');
-const User = require('./User');
 const router = express.Router();
-const idNumberControl = require('../shared/idNumberControl');
 const UserService = require('./UserService');
-const basicAuthentication = require('../shared/basicAuthentication');
-
 
 router.post('/api/Authenticate', async (req, res) => {
-    const username = req.body.username;
+    //todo: everything
 });
 
+router.post('/users', async (req, res) => {
+    await UserService.createUser(req.body)
+        .then(() => {
+            res.status(201).send({ message: "Successfully added user. " })
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).send({ message: "Error when accessing database. Failed to add user." });
+        });
+})
+
 router.get('/users', async (req, res) => {
-  const page = await UserService.getUsers();
-  res.send(page);
+    const userList = await UserService.getUsers()
+        .catch(err => {
+            console.log(err);
+            res.status(500).send({ message: "Error when accessing database. Failed to get employee list." });
+        });
+
+    res.status(200).send(userList);
 })
 
-router.get('/users/:id', idNumberControl, async (req, res, next) => {
-  try {
-    const user = await UserService.getUser(req.params.id);
-    res.send(user);
-  } catch (err) {
-    console.log(err);
-    next(err);
-  }
-})
+router.get('/users/:id', async (req, res) => {
+    const user = await UserService.getUser(req.params.id)
+        .catch(err => {
+            console.log(err);
+            res.status(500).send({ message: "Error when accessing database. Failed to get employee." });
+        });
 
-router.put('/users/:id', idNumberControl, basicAuthentication, async (req, res) => {
-  const authenticatedUser = req.authenticatedUser;
-  if(!authenticatedUser) {
-    return res.status(403).send({message: 'Forbidden'});
-  }
-
-  const id = req.params.id;
-  
-  if(authenticatedUser.id != id) {
-    return res.status(403).send({message: 'Forbidden'});
-  }
-  const user = await User.findOne({where: {id: id}});
-  user.username = req.body.username;
-  await user.save();
-  res.send('updated');
-})
-
-router.delete('/users/:id', idNumberControl, basicAuthentication, async (req, res) => {
-  const authenticatedUser = req.authenticatedUser;
-  if(!authenticatedUser) {
-    return res.status(403).send({message: 'Forbidden'});
-  }
-
-  const id = req.params.id;
-  
-  if(authenticatedUser.id != id) {
-    return res.status(403).send({message: 'Forbidden'});
-  }
-  await User.destroy({where: {id: id}});
-  res.send('removed');
+    res.status(200).send(user);
 })
 
 
+router.put('/users/:id', async (req, res) => {
+    await UserService.updateUser(req.params.id, req.body.username, req.body.password)
+        .then(() => {
+            res.status(200).send({ message: "Successfully updated employee. " })
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).send({ message: "Error when accessing database. Failed to update employee." });
+        });
+})
+
+router.delete('/users/:id', async (req, res) => {
+    try {
+        await UserService.deleteUser(req.params.id);
+        res.status(200).send({ message: "Successfully deleted user. " });
+    } catch (err) {
+        console.log(err);
+        res.status(500).send({ message: "Error when trying to delete user from database. Failed to delete user." })
+    }
+
+})
 
 module.exports = router;
