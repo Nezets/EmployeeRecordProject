@@ -2,7 +2,7 @@ const Employee = require('./Employee');
 
 const createEmployee = async (body) => {
     const {first_name, last_name, dob, email, skill_id, active, age } = body;
-    await Employee.create({
+    const newEmployee = await Employee.create({
         first_name,
         last_name,
         dob,
@@ -11,6 +11,8 @@ const createEmployee = async (body) => {
         active,
         age
     });
+
+    return newEmployee.id;
 }
 
 const getEmployees = async () => {
@@ -41,6 +43,9 @@ const updateEmployee = async (id, body) => {
             where: { id, id },
         }
     )
+
+    const updatedEmployee = await Employee.findOne({ where: { id: id } });
+    return updatedEmployee.dataValues;
 }
 
 const deleteEmployee = async (id) => {

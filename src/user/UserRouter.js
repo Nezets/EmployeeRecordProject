@@ -3,7 +3,16 @@ const router = express.Router();
 const UserService = require('./UserService');
 
 router.post('/api/Authenticate', async (req, res) => {
-    //todo: everything
+    const username = req.body.username;
+    const password = req.body.password;
+    const jwt = await UserService.authenticate(username, password);
+
+    if (jwt) {
+        console.log(jwt);
+        res.status(200).send({ message: "Successfully authenticated user.", jwt: jwt});
+    } else {
+        res.status(401).send({ message: "Failed to authenticate" });
+    }   
 });
 
 router.post('/users', async (req, res) => {
@@ -18,6 +27,8 @@ router.post('/users', async (req, res) => {
 })
 
 router.get('/users', async (req, res) => {
+    console.log(req.cookies.token);
+
     const userList = await UserService.getUsers()
         .catch(err => {
             console.log(err);
@@ -36,7 +47,6 @@ router.get('/users/:id', async (req, res) => {
 
     res.status(200).send(user);
 })
-
 
 router.put('/users/:id', async (req, res) => {
     await UserService.updateUser(req.params.id, req.body.username, req.body.password)

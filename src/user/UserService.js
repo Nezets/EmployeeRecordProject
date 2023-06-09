@@ -1,6 +1,9 @@
 const User = require('./User');
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 const createUser = async (body) => {
   const { username, password } = body;
@@ -9,7 +12,7 @@ const createUser = async (body) => {
 }
 
 const getUsers = async () => {
-  const userList = await User.findAll();
+    const userList = await User.findAll();
     return { userList };
 }
 
@@ -43,21 +46,25 @@ const deleteUser = async (id) => {
 }
 
 const authenticate = async (username, password) => {
-    const hashedPassword = bcrypt.hash(password, 8);
+    if (password == null) {
+        return null;
+    }
+    const hashedPassword = await bcrypt.hash(password, 8);
+
     const user = await User.findOne({
         where: {
             username: username,
-            password: hashedPassword,
-        },
-    })
-        .then(() => {
-            //todo: Generate JWT
+        }
+    });
 
-            return user;
-        }).catch((err) => {
-            console.log(err);
-            return err;
-        });
+    if (user && bcrypt.compare(password, hashedPassword)) {
+        const jwtKey = process.env.SECRET_KEY;
+        const token = jwt.sign({ username }, jwtKey);
+
+        return token;
+    } else {
+        return null;
+    }
 }
 
 const checkLoginInfo = async (username, password) => {
@@ -82,4 +89,5 @@ module.exports = {
     getUser,
     updateUser,
     deleteUser,
+    authenticate,
 }

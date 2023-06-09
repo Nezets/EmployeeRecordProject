@@ -22,6 +22,8 @@ const Employee = sequelize.define("employee", {
     skill_id: {
         //todo: Turn into foreign key
         type: DataTypes.UUID,
+        //references: 'skill',
+        //referencesKey: 'id',
     },
     active: {
         type: DataTypes.BOOLEAN,
