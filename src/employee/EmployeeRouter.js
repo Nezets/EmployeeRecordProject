@@ -6,8 +6,21 @@ const EmployeeService = require('./EmployeeService');
 
 dotenv.config();
 
-router.post('/employees', async (req, res) => {
+const verifyJwt = (token) => {
+    try {
+        const decoded = jwt.verify(token, process.env.SECRET_KEY);
+        if (decoded) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (err) {
+        //console.log(err);
+        return false;
+    }
+}
 
+router.post('/employees', async (req, res) => {
     const employeeId = await EmployeeService.createEmployee(req.body)
         .catch(err => {
             console.log(err);
@@ -19,12 +32,9 @@ router.post('/employees', async (req, res) => {
 
 router.get('/employees', async (req, res) => {
     const token = req.cookies.token;
-    if (token == null) {
-        return res.status(401).send({ message: "Failed to authenticate. Missing json web token." });
+    if (verifyJWT(token) === false) {
+        return res.status(401).send({ message: "Failed to authenticate. Invalid token." });
     }
-
-    const decoded = jwt.verify(token, process.env.SECRET_KEY);
-    console.log(decoded);
 
     const employeeList = await EmployeeService.getEmployees()
         .catch(err => {
@@ -35,6 +45,11 @@ router.get('/employees', async (req, res) => {
 });
 
 router.get('/employees/:id', async (req, res) => {
+    const token = req.cookies.token;
+    if (verifyJwt(token) === false) {
+        return res.status(401).send({ message: "Failed to authenticate. Invalid token." });
+    }
+
     const employee = await EmployeeService.getEmployee(req.params.id)
         .catch(err => {
             console.log(err);
@@ -44,6 +59,11 @@ router.get('/employees/:id', async (req, res) => {
 });
 
 router.put('/employees/:id', async (req, res) => {
+    const token = req.cookies.token;
+    if (verifyJwt(token) === false) {
+        return res.status(401).send({ message: "Failed to authenticate. Invalid token." });
+    }
+
     const updatedEmployee = await EmployeeService.updateEmployee(req.params.id, req.body)
         .catch(err => {
             console.log(err);
@@ -54,6 +74,11 @@ router.put('/employees/:id', async (req, res) => {
 });
 
 router.delete('/employees/:id', async (req, res) => {
+    const token = req.cookies.token;
+    if (verifyJwt(token) === false) {
+        return res.status(401).send({ message: "Failed to authenticate. Invalid token." });
+    }
+
     await EmployeeService.deleteEmployee(req.params.id)
         .then(() => {
             res.status(200).send({ message: "Successfully deleted employee. " })

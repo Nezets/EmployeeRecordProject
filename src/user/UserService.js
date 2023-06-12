@@ -36,7 +36,6 @@ const updateUser = async (id, username, password) => {
             where: { id, id },
         }
     )
-
 }
 
 const deleteUser = async (id) => {
@@ -64,22 +63,6 @@ const authenticate = async (username, password) => {
         return token;
     } else {
         return null;
-    }
-}
-
-const checkLoginInfo = async (username, password) => {
-    const hashedPassword = bcrypt.hash(password, 8);
-    const user = await User.findOne({
-        where: {
-            username: username,
-            password: hashedPassword,
-        },
-    })
-
-    if (user == null) {
-        return false; 
-    } else {
-        return true;
     }
 }
 

@@ -7,8 +7,9 @@ const SkillService = require('./src/skills/SkillService');
 
 dotenv.config();
 
-if (process.env.DEBUG) {
+if (process.env.DEBUG === true) {
     console.log("Debug Dev Mode. ");
+    console.log("Generating testing data. ");
     sequelize.sync({ force: true }).then(async () => {
         for (let i = 1; i <= 5; i++) {
             const user = {
